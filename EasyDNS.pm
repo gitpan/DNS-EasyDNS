@@ -1,6 +1,6 @@
 package DNS::EasyDNS;
 
-our $VERSION = 0.02;
+our $VERSION = 0.03;
 
 #==============================================================================#
 
@@ -12,7 +12,7 @@ DNS::EasyDNS - Update your EasyDNS dynamic DNS entries
 
 	use DNS::EasyDNS;
 	my $ed = DNS::EasyDNS->new;
-	$ed->update( user => "foo", password => "bar" ) || die "Failed: $@";
+	$ed->update( username => "foo", password => "bar" ) || die "Failed: $@";
 
 =head1 DESCRIPTION
 
@@ -37,7 +37,7 @@ use HTTP::Request::Common qw(GET);
 
 use base qw(LWP::UserAgent);
 
-use constant URL => 'http://members.easydns.com/dyn/dyndns.php';
+use constant URL => 'members.easydns.com/dyn/dyndns.php';
 
 #==============================================================================#
 
@@ -57,6 +57,18 @@ sub new {
 	$obj->agent("DNS::EasyDNS perl module");
 	return $obj;
 }
+
+
+sub can_do_https {
+	eval "use Crypt::SSLeay";
+
+	if ($@) {
+		return;
+	} else {
+		return 1;
+	}
+}
+
 
 #==============================================================================#
 
@@ -90,6 +102,13 @@ C<wildcard> - Values are either C<"ON"> or C<"OFF">, if C<"ON"> sets a wildcard
 host record for the domain being updated equal to the IP address specified 
 in C<myip>.
 
+C<secure> - Values are either C<1> or C<0>. If C<1>, then SSL https is used to connect
+to EasyDNS. The SSL connection has the big advantage
+that your passwords are not passed in plain-text accross the internet. Secure is on by
+default if Crypt::SSLeay is installed. A warning will be generated if it's not
+installed, unless you set C<secure => 0>. If you set C<secure => 1> and the module is
+unavailable, the module will C<croak>.
+
 =back
 
 The function returns C<TRUE> of success. On failure it returns C<FALSE> and 
@@ -110,6 +129,7 @@ sub update {
 		elsif ( $k eq "mx"       ) { $get{mx} = $v           }
 		elsif ( $k eq "backmx"   ) { $get{backmx} = $v       }
 		elsif ( $k eq "wildcard" ) { $get{wildcard} = $v     }
+		elsif ( $k eq "secure"   ) { $obj->{"secure"} = $v   }
 		else { carp "update(): Bad argument $k" }
 	}
 
@@ -122,10 +142,26 @@ sub update {
 	croak "update(): Argument 'hostname' is required" 
 		unless defined $args{"hostname"};
 
+	if (defined $obj->{"secure"}) {
+		if ($obj->{"secure"} && ! can_do_https()) {
+			croak "Can't run in secure mode - try installing Crypt::SSLeay"
+		}
+	} else {
+		if (can_do_https()) {
+			$obj->{"secure"} = 1;
+		} else {
+			carp "** USING INSECURE MODE - PLEASE READ THE DOCUMENTATION **\n";
+			$obj->{"secure"} = 0;
+		}
+	}
+
 	## Make the GET request URL.
+
+	my $proto = $obj->{"secure"} ? "https://" : "http://";
+
 	my $qry = join('&', map { escape($_)."=".escape($get{$_}) } keys %get);
 
-	my $resp = $obj->request(GET URL."?".$qry);
+	my $resp = $obj->request(GET $proto.URL."?".$qry);
 
 	if ($resp->is_success) {
 		chomp(my $code = $resp->content);
@@ -160,7 +196,7 @@ None known
 
 =head1 AUTHOR
 
-This module is Copyright (c) 2002 Gavin Brock gbrock@cpan.org. All rights
+This module is Copyright (c) 2003 Gavin Brock gbrock@cpan.org. All rights
 reserved. This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
@@ -175,6 +211,8 @@ L<LWP::UserAgent>
 
 =cut
 
+#
 # That's all folks..
 #==============================================================================#
+
 1;
