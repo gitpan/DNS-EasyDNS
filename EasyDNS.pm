@@ -1,6 +1,6 @@
 package DNS::EasyDNS;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 #==============================================================================#
 
@@ -10,14 +10,14 @@ DNS::EasyDNS - Update your EasyDNS dynamic DNS entries
 
 =head1 SYNOPSIS
 
-	nse DNS::EasyDNS;
-	my $ez = DNS::EasyDNS->new;
-	$ez->update( user => "foo", password => "bar" ) || die "Failed: $@";
+	use DNS::EasyDNS;
+	my $ed = DNS::EasyDNS->new;
+	$ed->update( user => "foo", password => "bar" ) || die "Failed: $@";
 
 =head1 DESCRIPTION
 
-This module allows you to update your EasyDNS (http://www.easydns.com/)
-dynamic DNS records. This is done via an http get using the L<libwww>
+This module allows you to update your EasyDNS ( http://www.easydns.com/ )
+dynamic DNS records. This is done via an http get using the L<libwww-perl>
 modules.
 
 =head1 METHODS
@@ -44,10 +44,10 @@ use constant URL => 'http://members.easydns.com/dyn/dyndns.php';
 =item DNS::EasyDNS->new();
 
 Create a new EasyDNS object. This is actually an inheritted L<LWP::UserAgent>
-so you may like to use some of the UserAgent methods ones. For example,
+so you may like to use some of the UserAgent methods. For example,
 if you are behind a proxy server:
 
-	$ez->proxy('http', 'http://proxy.sn.no:8001/');
+	$ed->proxy('http', 'http://proxy.sn.no:8001/');
 
 =cut
 
@@ -60,9 +60,9 @@ sub new {
 
 #==============================================================================#
 
-=item $ez->update(%args);
+=item $ed->update(%args);
 
-Updates your EasyDNS dynamic DNS records. Valid %args are:
+Updates your EasyDNS dynamic DNS records. Valid C<%args> are:
 
 =over 8
 
@@ -83,17 +83,17 @@ being natted).
 C<mx> - Use this parameter as the MX handler for the domain being updated, 
 it defaults to preference 5.
 
-C<backmx> - Values are either "YES" or "NO", if "YES" we set smtp.easydns.com
+C<backmx> - Values are either C<"YES"> or C<"NO">, if C<"YES"> we set smtp.easydns.com
 to be a backup mail spool for domain being updated at preference 100.
 
-C<wildcard> - Values are either "ON" or "OFF", if "ON" sets a wildcard
+C<wildcard> - Values are either C<"ON"> or C<"OFF">, if C<"ON"> sets a wildcard
 host record for the domain being updated equal to the IP address specified 
-in "myip".
+in C<myip>.
 
 =back
 
 The function returns C<TRUE> of success. On failure it returns C<FALSE> and 
-sets $@.
+sets C<$@>.
 
 =cut
 
@@ -147,10 +147,10 @@ sub get_basic_credentials { ($_[0]->{"username"}, $_[0]->{"password"}) }
 
 =head1 NOTES
 
-There are soaem example scripts in the examples directory of the module
+There are some example scripts in the C<examples> directory of the module
 distribution. These are designed to run out of cron (or similar). You
 should not run them to often to avoid overloading the EasyDNS servers (in fact
-EasyDNS will not respond to similar reqests less that XXXXX apart). Ideally
+EasyDNS will not respond to similar reqests less that 10 minutes apart). Ideally
 your code should cache the existing value for your IP, and only update
 EasyDNS when it changes.
 
