@@ -1,0 +1,9 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+TODO
+EasyDNS.pm
+t/01Basic.t
+examples/easydns-simple
+examples/easydns-from-router
