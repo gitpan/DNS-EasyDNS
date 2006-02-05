@@ -3,8 +3,11 @@ Makefile.PL
 MANIFEST
 README
 TODO
-EasyDNS.pm
-t/01Basic.t
+lib/DNS/EasyDNS.pm
+t/01.basic.t
+t/90.pod.t
+t/91.podcoverage.t
 examples/easydns-simple
 examples/easydns-from-router
 examples/easydns-by-interface
+META.yml                                 Module meta-data (added by MakeMaker)

@@ -1,6 +1,6 @@
 package DNS::EasyDNS;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 #==============================================================================#
 
@@ -21,6 +21,8 @@ dynamic DNS records. This is done via an http get using the L<libwww-perl>
 modules.
 
 =head1 METHODS
+
+=over 4
 
 =cut
 
@@ -59,7 +61,7 @@ sub new {
 }
 
 
-sub can_do_https {
+sub _can_do_https {
 	eval "use Crypt::SSLeay";
 
 	if ($@) {
@@ -143,11 +145,11 @@ sub update {
 		unless defined $args{"hostname"};
 
 	if (defined $obj->{"secure"}) {
-		if ($obj->{"secure"} && ! can_do_https()) {
+		if ($obj->{"secure"} && ! _can_do_https()) {
 			croak "Can't run in secure mode - try installing Crypt::SSLeay"
 		}
 	} else {
-		if (can_do_https()) {
+		if (_can_do_https()) {
 			$obj->{"secure"} = 1;
 		} else {
 			carp "** USING INSECURE MODE - PLEASE READ THE DOCUMENTATION **\n";
@@ -177,9 +179,21 @@ sub update {
 	}
 }
 
+=item DNS::EasyDNS->get_basic_credentials();
+
+Since EasyDNS object is an inheritted L<LWP::UserAgent>, it overrides
+this UserAgent method for your convenience. It uses the credentials passed
+in the constructor. There is no real reason to override, or call this.
+
+	sub get_basic_credentials { ($_[0]->{"username"}, $_[0]->{"password"}) }
+
+=cut
+
 sub get_basic_credentials { ($_[0]->{"username"}, $_[0]->{"password"}) }
 
 #==============================================================================#
+
+=back
 
 =head1 NOTES
 
@@ -196,7 +210,7 @@ None known
 
 =head1 AUTHOR
 
-This module is Copyright (c) 2003 Gavin Brock gbrock@cpan.org. All rights
+This module is Copyright (c) 2003-2006 Gavin Brock gbrock@cpan.org. All rights
 reserved. This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
